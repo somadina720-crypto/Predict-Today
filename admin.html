@@ -1,1 +1,53 @@
-<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>body{background:#111;color:#fff;font-family:Arial;padding:15px}input,button{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:none}input{background:#222;color:#fff}button{background:#22c55e;font-weight:bold;cursor:pointer}.del{background:#ef4444;color:#fff;margin-top:20px}</style></head><body><h2>Push Games</h2><div id="form"></div><input id="code" placeholder="Booking Code"><button onclick="push()">PUSH ALL GAMES</button><button class="del" onclick="clearAll()">🗑️ CLEAR ALL GAMES (Manual Delete)</button><p id="msg"></p><script>const sb=supabase.createClient("https://jokbvhugvehbjxndfqmo.supabase.co","sb_publishable_LVbrVhVaw08i75onV0Y1tQ_IW-iV0WN");let html='';for(let i=1;i<=8;i++){html+=`<input id="t${i}" placeholder="Game ${i} Teams e.g Chelsea vs Arsenal"><input id="l${i}" placeholder="Game ${i} League"><input id="ti${i}" placeholder="Game ${i} Time"><input id="tip${i}" placeholder="Game ${i} Tip e.g Over 1.5" style="margin-bottom:15px;border-bottom:2px solid #22c55e">`;}document.getElementById('form').innerHTML=html;async function push(){let rows=[];let code=document.getElementById('code').value;for(let i=1;i<=8;i++){let teams=document.getElementById('t'+i).value;if(!teams)continue;rows.push({teams:teams,league:document.getElementById('l'+i).value,time:document.getElementById('ti'+i).value,tip:document.getElementById('tip'+i).value,code:code});}let {error}=await sb.from('predictions').insert(rows);document.getElementById('msg').innerText=error?error.message:'SUCCESS! '+rows.length+' games pushed';}async function clearAll(){if(!confirm('You wan clear all games?'))return;let {error}=await sb.from('predictions').delete().gte('id',0);document.getElementById('msg').innerText=error?error.message:'All games cleared! Website will show No tips yet';}</script></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin - Push Tips</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{background:#111;color:#fff;font-family:Arial;padding:15px}
+h2{text-align:center;color:#22c55e}
+input,button{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:none;box-sizing:border-box}
+input{background:#222;color:#fff;border:1px solid #333}
+button{background:#22c55e;font-weight:bold;cursor:pointer;color:#000;font-size:16px}
+.del{background:#ef4444;color:#fff;margin-top:25px}
+#msg{text-align:center;margin:10px;font-weight:bold}
+label{font-size:12px;color:#888}
+</style>
+</head>
+<body>
+<h2>9ja Odds Admin</h2>
+<div id="form"></div>
+<input id="code" placeholder="Booking Code (e.g 5H67K)">
+<button onclick="push()">PUSH ALL GAMES</button>
+<button class="del" onclick="clearAll()">🗑️ CLEAR ALL GAMES</button>
+<p id="msg"></p>
+
+<script>
+const sb=supabase.createClient("https://jokbvhugvehbjxndfqmo.supabase.co","sb_publishable_LVbrVhVaw08i75onV0Y1tQ_IW-iV0WN");
+let html='';
+for(let i=1;i<=8;i++){
+ html+=`<div style="border:1px solid #333;padding:10px;border-radius:8px;margin:10px 0"><label>GAME ${i}</label><input id="t${i}" placeholder="Teams: Chelsea vs Arsenal"><input id="l${i}" placeholder="League: Premier League"><input id="ti${i}" placeholder="Time: 15:00"><input id="tip${i}" placeholder="Tip: Over 1.5"></div>`;
+}
+document.getElementById('form').innerHTML=html;
+
+async function push(){
+ let rows=[]; let code=document.getElementById('code').value;
+ for(let i=1;i<=8;i++){
+   let teams=document.getElementById('t'+i).value;
+   if(!teams)continue;
+   rows.push({teams:teams,league:document.getElementById('l'+i).value,time:document.getElementById('ti'+i).value,tip:document.getElementById('tip'+i).value,code:code});
+ }
+ if(rows.length==0){document.getElementById('msg').innerText='Type at least 1 game';return;}
+ let {error}=await sb.from('predictions').insert(rows);
+ document.getElementById('msg').innerText=error?'Error: '+error.message:'SUCCESS! '+rows.length+' games pushed to website!';
+}
+
+async function clearAll(){
+ if(!confirm('Clear all games? Website will show No tips yet'))return;
+ let {error}=await sb.from('predictions').delete().gte('id',0);
+ document.getElementById('msg').innerText=error?'Error: '+error.message:'All games cleared! Table empty now.';
+}
+</script>
+</body>
+</html>
