@@ -20,15 +20,26 @@ input,textarea{background:#000;color:#fff;border:1px solid #333}
 </head>
 <body>
 <div id="lockScreen" class="lock-screen">
-  <div class="lock-box">
-    <h2>🔒 ADMIN LOCKED</h2>
-    <p style="color:#888;margin-top:10px;font-size:13px">Enter password</p>
-    <input type="password" id="passInput" placeholder="Enter password" />
-    <button class="btn-green" onclick="unlock()">UNLOCK</button>
-    <p id="passError" style="color:red;margin-top:10px;display:none">Wrong password!</p>
-  </div>
+<div class="lock-box">
+<h2>🔒 ADMIN LOCKED</h2>
+<p style="color:#888;margin-top:10px">Enter password</p>
+<input type="password" id="passInput" placeholder="Enter password" />
+<button class="btn-green" onclick="unlock()">UNLOCK</button>
+<p id="passError" style="color:red;margin-top:10px;display:none">Wrong password!</p>
+</div>
 </div>
 <h1>🔥 ADMIN AUTO UPLOAD</h1>
-<div class="box">
-  <h3>Step 1: Booking Code</h3>
-  <input
+<div class="box"><h3>Step 1: Booking Code</h3><input id="codeInput" placeholder="e.g. T2VAK0" /></div>
+<div class="box"><h3>Step 2: Upload Screenshot</h3><input type="file" id="imageInput" accept="image/*" /><img id="previewImg" style="display:none;max-width:100%;margin-top:15px;border-radius:10px"/><div id="status" style="margin-top:15px;color:#aaa;white-space:pre-wrap">No image yet...</div></div>
+<div class="box"><h3>Step 3: Detected Games</h3><textarea id="resultArea" style="height:250px;color:#0f0;font-size:12px"></textarea><button class="btn-green" onclick="pushToSupabase()">🚀 PUSH TO WEBSITE NOW</button><div id="pushStatus" style="margin-top:15px;color:#aaa"></div></div>
+<script>
+const MY_PASSWORD = "Admin@123";
+function unlock(){let p=document.getElementById('passInput').value;if(p===MY_PASSWORD){document.getElementById('lockScreen').style.display='none';localStorage.setItem('admin_unlocked','yes');}else{document.getElementById('passError').style.display='block';}}
+if(localStorage.getItem('admin_unlocked')==='yes'){document.getElementById('lockScreen').style.display='none';}
+const SUPABASE_URL="https://ddpxcokszqtizoacvpid.supabase.co";const SUPABASE_KEY="sb_publishable_gDMnqreuxEPCxeDPDqgSoQ_NgR6pDLk";const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let detectedGames=[];document.getElementById('imageInput').addEventListener('change',async(e)=>{let file=e.target.files[0];if(!file)return;document.getElementById('previewImg').src=URL.createObjectURL(file);document.getElementById('previewImg').style.display='block';document.getElementById('status').innerText='⏳ Reading...';let{data:{text}}=await Tesseract.recognize(file,'eng');document.getElementById('status').innerText='Raw:'+text.substring(0,300);let lines=text.split('\n');detectedGames=[];lines.forEach(line=>{line=line.trim();if(line.toLowerCase().includes(' vs ')){let clean=line.replace(/[^a-zA-Z0-9 vs-]/g,'').trim();if(clean.length>5)detectedGames.push({teams:clean,tip:"Over 1.5"});}});let output="";detectedGames.forEach(g=>{output+=`${g.teams} | ${g.tip}\n`;});document.getElementById('resultArea').value=output;document.getElementById('status').innerText=`✅ Found ${detectedGames.length} games!`;});
+function autoDetect(teams){let t=teams.toLowerCase();if(t.includes("barcelona")||t.includes("real"))return{league:"La Liga",time:"20:00"};if(t.includes("bayern")||t.includes("dortmund"))return{league:"Bundesliga",time:"19:30"};if(t.includes("inter")||t.includes("juventus"))return{league:"Serie A",time:"19:45"};return{league:"International",time:"19:45"};}
+async function pushToSupabase(){let code=document.getElementById('codeInput').value.trim();if(!code){alert('Enter Booking Code!');return;}let text=document.getElementById('resultArea').value.trim();let rows=text.split('\n');document.getElementById('pushStatus').innerText='⏳ Pushing...';for(let line of rows){if(!line.includes('|'))continue;let p=line.split('|');let teams=p[0].trim();let tip=p[1].trim();let meta=autoDetect(teams);await client.from('predictions').insert([{teams,tip,league:meta.league,time:meta.time,code}]);}document.getElementById('pushStatus').innerText=`✅ SUCCESS! ${rows.length} games pushed`;localStorage.removeItem('predict_cache');}
+</script>
+</body>
+  </html>
