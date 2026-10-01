@@ -3,7 +3,7 @@
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Admin - Push Tips</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
 body{background:#111;color:#fff;font-family:Arial;padding:15px}
 h2{text-align:center;color:#22c55e}
@@ -11,7 +11,7 @@ input,button{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:none;
 input{background:#222;color:#fff;border:1px solid #333}
 button{background:#22c55e;font-weight:bold;cursor:pointer;color:#000;font-size:16px}
 .del{background:#ef4444;color:#fff;margin-top:25px}
-#msg{text-align:center;margin:10px;font-weight:bold}
+#msg{text-align:center;margin:10px;font-weight:bold;color:yellow}
 label{font-size:12px;color:#888}
 </style>
 </head>
@@ -24,7 +24,10 @@ label{font-size:12px;color:#888}
 <p id="msg"></p>
 
 <script>
-const sb=supabase.createClient("https://jokbvhugvehbjxndfqmo.supabase.co","sb_publishable_LVbrVhVaw08i75onV0Y1tQ_IW-iV0WN");
+const SUPA_URL = "https://jokbvhugvehbjxndfqmo.supabase.co";
+const SUPA_KEY = "sb_publishable_LVbrVhVaw08i75onV0Y1tQ_IW-iV0WN";
+const sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+
 let html='';
 for(let i=1;i<=8;i++){
  html+=`<div style="border:1px solid #333;padding:10px;border-radius:8px;margin:10px 0"><label>GAME ${i}</label><input id="t${i}" placeholder="Teams: Chelsea vs Arsenal"><input id="l${i}" placeholder="League: Premier League"><input id="ti${i}" placeholder="Time: 15:00"><input id="tip${i}" placeholder="Tip: Over 1.5"></div>`;
@@ -32,21 +35,35 @@ for(let i=1;i<=8;i++){
 document.getElementById('form').innerHTML=html;
 
 async function push(){
- let rows=[]; let code=document.getElementById('code').value;
- for(let i=1;i<=8;i++){
-   let teams=document.getElementById('t'+i).value;
-   if(!teams)continue;
-   rows.push({teams:teams,league:document.getElementById('l'+i).value,time:document.getElementById('ti'+i).value,tip:document.getElementById('tip'+i).value,code:code});
+ try{
+   let rows=[]; let code=document.getElementById('code').value;
+   for(let i=1;i<=8;i++){
+     let teams=document.getElementById('t'+i).value.trim();
+     if(!teams)continue;
+     rows.push({teams:teams,league:document.getElementById('l'+i).value,time:document.getElementById('ti'+i).value,tip:document.getElementById('tip'+i).value,code:code});
+   }
+   if(rows.length==0){document.getElementById('msg').innerText='Type at least 1 game';return;}
+   document.getElementById('msg').innerText='Pushing...';
+   // clear old before push to avoid duplicate
+   await sb.from('predictions').delete().gte('id',0);
+   let {error}=await sb.from('predictions').insert(rows);
+   if(error) throw error;
+   document.getElementById('msg').innerText='SUCCESS! '+rows.length+' games pushed!';
+ }catch(e){
+   document.getElementById('msg').innerText='Error: '+e.message;
  }
- if(rows.length==0){document.getElementById('msg').innerText='Type at least 1 game';return;}
- let {error}=await sb.from('predictions').insert(rows);
- document.getElementById('msg').innerText=error?'Error: '+error.message:'SUCCESS! '+rows.length+' games pushed to website!';
 }
 
 async function clearAll(){
  if(!confirm('Clear all games? Website will show No tips yet'))return;
- let {error}=await sb.from('predictions').delete().gte('id',0);
- document.getElementById('msg').innerText=error?'Error: '+error.message:'All games cleared! Table empty now.';
+ try{
+   document.getElementById('msg').innerText='Clearing...';
+   let {error}=await sb.from('predictions').delete().gte('id',0);
+   if(error) throw error;
+   document.getElementById('msg').innerText='All games cleared! Table empty now.';
+ }catch(e){
+   document.getElementById('msg').innerText='Error: '+e.message;
+ }
 }
 </script>
 </body>
