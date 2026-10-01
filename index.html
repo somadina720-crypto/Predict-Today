@@ -3,46 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Predict Today - Daily Football Predictions</title>
+<title>Predict Today</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:Arial;background:#080808;color:#fff;padding:15px}
-.header{text-align:center;padding:20px 0;border-bottom:1px solid #222;margin-bottom:15px}
+.header{text-align:center;padding:20px 0}
 .header h1{color:#00ff66;font-size:28px}
-.header p{color:#aaa}
-.card{background:#181818;border:1px solid #2a2a2a;border-radius:14px;padding:16px;margin-bottom:18px}
-.match{padding:12px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between;font-size:14px}
-.tip{color:#00ff66;font-weight:bold}
-.code-box{background:#000;border:1.5px dashed #00ff66;color:#00ff66;padding:14px;border-radius:10px;text-align:center;font-size:22px;letter-spacing:3px;font-weight:bold;margin:14px 0}
-.btn{width:100%;background:#00ff66;color:#000;border:none;padding:15px;border-radius:10px;font-weight:bold;font-size:17px}
-.small{color:#777;font-size:12px;text-align:center;margin-top:8px}
-.badge{background:#00ff66;color:#000;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:bold}
+.card{background:#181818;border:1px solid #2a2a2a;border-radius:14px;padding:16px}
+.row{padding:16px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between}
+.tip{color:#00ff66;font-weight:bold;background:#0f2a18;padding:6px 12px;border-radius:20px}
+.code-box{background:#000;border:2px dashed #00ff66;color:#00ff66;padding:18px;border-radius:12px;text-align:center;font-size:32px;letter-spacing:5px;font-weight:bold;margin:20px 0}
+.btn{width:100%;background:#00ff66;color:#000;border:none;padding:16px;border-radius:10px;font-weight:bold;font-size:18px}
 </style>
 </head>
 <body>
-<div class="header">
-<h1>🔮 Predict Today</h1>
-<p>Your Home For Daily Winning Tips</p>
-</div>
-<div id="games"><p style="text-align:center;color:#777">Loading today's tips...</p></div>
+<div class="header"><h1>🔮 Predict Today</h1><p>Daily Winning Tips</p></div>
+<div id="games" class="card"><p style="text-align:center;color:#777">Loading...</p></div>
 <script>
 const SUPABASE_URL = "https://ddpxcokszqtizoacvpid.supabase.co";
 const SUPABASE_KEY = "sb_publishable_gDMnqreuxEPCxeDPDqgSoQ_NgR6pDLk";
-const AFFILIATE_LINK = "https://www.sportybet.com/ng";
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-async function loadTips(){
-const {data} = await supabaseClient.from('predictions').select('*').order('id',{ascending:false}).limit(10);
-if(!data||data.length===0){
-document.getElementById('games').innerHTML='<div class="card"><p style="color:#777">No tips posted yet today. Check back soon.</p></div>';return;
-}
-let code=data[0].code;
-let html=`<div class="card"><div style="display:flex;justify-content:space-between;margin-bottom:10px"><span class="badge">TODAY'S TIPS</span><span style="color:#777;font-size:12px">${new Date().toDateString()}</span></div>`;
-data.reverse().forEach(p=>{html+=`<div class="match"><span>${p.teams}</span><span><span class="tip">${p.tip}</span> @${p.odd}</span></div>`;});
-html+=`<p class="small" style="margin-top:12px">PREDICT TODAY CODE</p><div class="code-box">${code}</div><button class="btn" onclick="navigator.clipboard.writeText('${code}');alert('✅ Code ${code} copied!');window.open(AFFILIATE_LINK,'_blank')">Bet Now on SportyBet →</button></div><div style="text-align:center;color:#555;font-size:11px;margin-top:20px">© Predict Today - 18+ Bet Responsibly</div>`;
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+async function load(){
+const {data} = await client.from('predictions').select('*').order('id',{ascending:false}).limit(10);
+if(!data||data.length==0){document.getElementById('games').innerHTML='No tips yet';return;}
+let code = data[0].code;
+let html='';
+data.reverse().forEach(p=>{
+html+=`<div class="row"><span>${p.teams}</span><span class="tip">${p.tip}</span></div>`;
+});
+html+=`<div style="margin-top:10px"><p style="text-align:center;color:#777;font-size:12px;margin-top:15px">CODE FOR ALL GAMES</p><div class="code-box">${code}</div><button class="btn" onclick="navigator.clipboard.writeText('${code}');window.open('https://www.sportybet.com/ng','_blank')">Bet Now on SportyBet →</button></div>`;
 document.getElementById('games').innerHTML=html;
 }
-loadTips();
+load();
 </script>
 </body>
-  </html>
+</html>
