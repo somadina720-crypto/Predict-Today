@@ -1,1 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Predict Today</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{font-family:Arial;background:#111;color:#fff;padding:15px}
+h2{color:#00ff66}
+input,button{width:100%;padding:13px;margin:7px 0;border-radius:10px;border:none}
+input{background:#222;color:#fff;border:1px solid #333}
+button{background:#00ff66;color:#000;font-weight:bold;cursor:pointer}
+.card{background:#1c1c1c;padding:12px;border-radius:10px;margin-top:10px;font-size:13px;display:flex;justify-content:space-between;align-items:center}
+.del{background:red;color:white;padding:6px 12px;width:auto;margin:0}
+</style>
+</head>
+<body>
+<h2>🔐 Predict Today - Admin</h2>
 
+<div id="loginBox">
+<input type="password" id="pass" placeholder="Enter password">
+<button onclick="login()">Login</button>
+<p style="color:#777;font-size:12px">Default password: admin123 (change in code later)</p>
+</div>
+
+<div id="adminBox" style="display:none">
+<h3>Post New Tip</h3>
+<input id="teams" placeholder="Match: e.g Arsenal vs Chelsea">
+<input id="tip" placeholder="Tip: e.g Over 1.5 Goals">
+<input id="odd" placeholder="Odd: e.g 1.35">
+<input id="code" placeholder="Booking Code: e.g PREDICT1">
+<button onclick="addTip()">🚀 Add & Post Live</button>
+
+<h3 style="margin-top:20px">Today's Posted Tips</h3>
+<div id="list"><p style="color:#777">Loading...</p></div>
+</div>
+
+<script>
+// ===== CONFIG =====
+const ADMIN_PASS = "admin123"; // change this to your own password
+const SUPABASE_URL = "YOUR_SUPABASE_URL_HERE";
+const SUPABASE_KEY = "YOUR_PUBLISHABLE_KEY_HERE";
+// ==================
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function login(){
+if(document.getElementById('pass').value===ADMIN_PASS){
+document.getElementById('loginBox').style.display='none';
+document.getElementById('adminBox').style.display='block';
+loadList();
+} else alert('Wrong password');
+}
+
+async function addTip(){
+let t = document.getElementById('teams').value;
+let tip = document.getElementById('tip').value;
+let odd = document.getElementById('odd').value;
+let code
