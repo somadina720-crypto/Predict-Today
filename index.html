@@ -2,88 +2,43 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Predict Today - Daily Tips</title>
+<title>Predict Today</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-body{background:#0a0a0a;color:#fff;font-family:Arial;padding:10px;margin:0}
-.header{text-align:center;padding:15px 0}
-.header h1{color:#22c55e;margin:0;font-size:28px}
-.header p{color:#888;margin:5px;font-size:12px}
-.responsible{color:#facc15;font-size:10px;text-align:center;padding:8px;background:#1a1a1a;border-radius:5px;margin:10px 0}
-.card{background:#1e1e1e;border-radius:12px;padding:14px;margin:12px 0;display:flex;justify-content:space-between;align-items:center;border:1px solid #2a2a2a}
-.card b{font-size:14px}.card small{color:#888;font-size:11px}
-.badge{background:#fff;color:#000;padding:7px 14px;border-radius:20px;font-weight:bold;font-size:12px}
-.code-box{border:1px dashed #22c55e;padding:15px;text-align:center;border-radius:10px;margin:15px 0;letter-spacing:4px;font-weight:bold;font-size:22px;background:#000;color:#22c55e}
-.no-tips{text-align:center;padding:70px 20px;color:#666}
-.no-tips h2{color:#fff}
+body{background:#0a0a0a;color:#fff;font-family:Arial;margin:0;padding:15px}
+.header{text-align:center;padding:20px 0}
+.header h1{color:#22c55e;margin:0}
+.card{background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:12px;margin:10px 0}
+.tip{color:#22c55e;font-weight:bold;float:right}
+.code-box{background:#22c55e;color:#000;padding:15px;border-radius:10px;text-align:center;font-weight:bold;font-size:18px;margin:20px 0}
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>Predict Today</h1>
-  <p>Daily Football Predictions</p>
-  <p id="todayDate" style="color:#22c55e;font-size:11px"></p>
+<h1>Predict Today</h1>
+<p id="date"></p>
+<p style="font-size:12px;color:#888">18+ Bet Responsibly</p>
 </div>
-
-<div class="responsible">🔞 18+ Bet Responsibly - Predictions for Today Only</div>
-
-<div id="games">Loading today's tips...</div>
-
-<div id="codeArea" style="display:none">
-  <div style="text-align:center;color:#888;font-size:11px;margin-top:25px">SPORTYBET BOOKING CODE</div>
-  <div class="code-box" id="bookingCode"></div>
-</div>
-
-<div id="noTips" class="no-tips" style="display:none">
-  <h2>⚽ No tips yet for today</h2>
-  <p>We are analyzing today's games.<br>Check back soon - tips drop daily!</p>
-  <p style="font-size:12px;margin-top:20px;color:#444">Tips reset every midnight</p>
-</div>
-
+<div id="games">Loading...</div>
 <script>
-const SUPABASE_URL = "https://jokbvhugvehbjxndfqmo.supabase.co";
-const SUPABASE_KEY = "sb_publishable_LVbrVhVaw08i75onV0Y1tQ_IW-iV0WN";
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// Show today's date
-document.getElementById('todayDate').innerText = new Date().toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
-
-async function loadGames(){
-  // MIDNIGHT RESET: Get only games created from 12:00am today
-  const startOfToday = new Date();
-  startOfToday.setHours(0,0,0,0); // 12am today
-  const todayISO = startOfToday.toISOString();
-
-  const { data, error } = await supabaseClient
-   .from('predictions')
-   .select('*')
-   .gte('created_at', todayISO) // Only today
-   .order('created_at', {ascending: true});
-
-  if(error) console.log(error);
-
-  if(!data || data.length === 0){
-    document.getElementById('games').innerHTML = "";
-    document.getElementById('noTips').style.display = "block";
-    document.getElementById('codeArea').style.display = "none";
-    return;
-  }
-
-  document.getElementById('noTips').style.display = "none";
-  document.getElementById('codeArea').style.display = "block";
-  document.getElementById('bookingCode').innerText = data[0].code || "NO CODE";
-
-  let html = "";
-  data.forEach(g => {
-    html += `<div class="card"><div><b>${g.teams}</b><br><small>⏰ ${g.time || '19:45'} • ${g.league || 'League'}</small></div><div class="badge">${g.tip}</div></div>`;
-  });
-  document.getElementById('games').innerHTML = html;
-
-  // Auto-delete old games (yesterday own) in background
-  supabaseClient.from('predictions').delete().lt('created_at', todayISO).then(()=>{ console.log("Old tips cleaned"); });
+document.getElementById('date').innerText = new Date().toDateString();
+const sb = supabase.createClient("https://jokbvhugvehbjxndfqmo.supabase.co","sb_publishable_LVbrVhVaw08i75onV0Y1tQ_IW-iV0WN");
+async function load(){
+ let {data,error} = await sb.from('predictions').select('*').order('id',{ascending:true});
+ if(error){document.getElementById('games').innerHTML=error.message;return;}
+ if(!data || data.length==0){
+   document.getElementById('games').innerHTML='<div style="text-align:center;padding:60px">⚽ No tips yet for today</div>';
+   return;
+ }
+ let html=''; let code='';
+ data.forEach(g=>{
+   html+=`<div class="card"><span class="tip">${g.tip}</span><b>${g.teams}</b><br><small>${g.league} - ${g.time}</small></div>`;
+   code=g.code;
+ });
+ if(code) html+=`<div class="code-box">Booking Code: ${code}</div>`;
+ document.getElementById('games').innerHTML=html;
 }
-
-loadGames();
+load();
 </script>
 </body>
 </html>
