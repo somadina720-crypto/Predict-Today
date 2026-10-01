@@ -1,78 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Predict Today</title>
+<html><head><meta name="viewport" content="width=device-width, initial-scale=1"><title>Predict Today</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Arial;background:#080808;color:#fff;padding:10px;-webkit-user-select:none;user-select:none}
-.header{text-align:center;padding:10px 0 4px 0}
-.header h1{font-size:22px;font-weight:900;background:linear-gradient(90deg,#fff 0%,#00ff66 50%,#ff3b3b 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.header p{font-size:12px;background:linear-gradient(90deg,#fff,#00ff88,#ff7777);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.marquee{width:100%;overflow:hidden;white-space:nowrap;background:#111;border-radius:6px;padding:3px 0;margin:8px 0}
-.marquee-content{display:inline-block;animation:marquee 12s linear infinite;color:#ffcc00;font-size:8px!important;font-weight:bold}
-@keyframes marquee{0%{transform:translateX(100%)}100%{transform:translateX(-100%)}}
-.card{background:#181818;border:1px solid #2a2a2a;border-radius:14px;padding:10px}
-.row{padding:11px 0;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:center}
-.team-box{flex:1}
-.team-name{font-size:13px;font-weight:bold}
-.team-meta{font-size:10px;color:#888;margin-top:3px}
-.tip{background:#fff!important;color:#000!important;font-weight:800;padding:5px 10px;border-radius:20px;font-size:11px}
-.code-box{background:#000;border:1.5px dashed #fff;color:#fff!important;padding:12px;border-radius:10px;text-align:center;font-size:20px;letter-spacing:3px;font-weight:bold;margin:14px 0;user-select:none!important;pointer-events:none!important}
-.btn{width:100%;background:#ff1a1a!important;color:#fff!important;border:none;padding:14px;border-radius:10px;font-weight:900;font-size:15px;cursor:pointer}
-.community-box{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:12px;margin-top:16px;text-align:center}
-.join-btns{display:flex;gap:8px}
-.btn-wa{flex:1;background:#25D366;color:#fff;padding:10px;border-radius:8px;font-weight:bold;font-size:12px;text-decoration:none}
-.btn-tg{flex:1;background:#5dade2;color:#fff;padding:10px;border-radius:8px;font-weight:bold;font-size:12px;text-decoration:none}
-</style>
-</head>
-<body oncontextmenu="return false;">
-<div class="header"><h1>Predict Today</h1><p>Daily Tips</p></div>
-<div class="marquee"><div class="marquee-content">18+ Bet Responsibly • 18+ Bet Responsibly • 18+ Bet Responsibly • 18+ Bet Responsibly •</div></div>
-<div id="games" class="card"><p style="text-align:center;color:#777">Loading...</p></div>
+<style>body{background:#0a0a0a;color:#fff;font-family:Arial;padding:10px}.card{background:#1e1e1e;border-radius:12px;padding:12px;margin:10px 0;display:flex;justify-content:space-between}.badge{background:#fff;color:#000;padding:6px 12px;border-radius:20px;font-weight:bold;font-size:12px}.code-box{border:1px dashed #fff;padding:15px;text-align:center;border-radius:10px;margin:15px 0;letter-spacing:3px;font-size:20px}.no-tips{text-align:center;padding:60px 20px;color:#666}</style>
+</head><body>
+<h1 style="color:#22c55e;text-align:center">Predict Today</h1>
+<div id="games">Loading...</div>
+<div id="codeArea" style="display:none"><div class="code-box" id="bookingCode"></div></div>
+<div id="noTips" class="no-tips" style="display:none"><h2>No tips yet</h2><p>New predictions coming soon!</p></div>
 <script>
-const SUPABASE_URL = "https://ddpxcokszqtizoacvpid.supabase.co";
-const SUPABASE_KEY = "sb_publishable_gDMnqreuxEPCxeDPDqgSoQ_NgR6pDLk";
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// AUTO DETECT LEAGUE + TIME
-function autoDetect(teams){
-  let t = teams.toLowerCase();
-  let league = "EPL";
-  let time = "19:30";
-
-  if(t.includes("barcelona") || t.includes("real madrid") || t.includes("atletico") || t.includes("sevilla") || t.includes("villarreal")){league="La Liga"; time="20:00";}
-  else if(t.includes("bayern") || t.includes("dortmund") || t.includes("leverkusen") || t.includes("leipzig")){league="Bundesliga"; time="19:30";}
-  else if(t.includes("inter") || t.includes("ac milan") || t.includes("juventus") || t.includes("napoli") || t.includes("roma")){league="Serie A"; time="19:45";}
-  else if(t.includes("psg") || t.includes("marseille") || t.includes("lyon") || t.includes("lille")){league="Ligue 1"; time="20:00";}
-  else if(t.includes("man city") || t.includes("arsenal") || t.includes("liverpool") || t.includes("chelsea") || t.includes("man united") || t.includes("tottenham") || t.includes("newcastle") || t.includes("aston villa")){league="EPL"; time="19:30";}
-  else if(t.includes("ajax") || t.includes("psv") || t.includes("feyenoord")){league="Eredivisie"; time="18:45";}
-  else if(t.includes("benfica") || t.includes("porto") || t.includes("sporting")){league="Primeira"; time="20:30";}
-  else {league="UCL"; time="21:00";} // default for big matches
-
-  return {league, time};
+const supabaseClient = supabase.createClient("https://jokbvhugvehbjxndfqmo.supabase.co","sb_publishable_LVbrVhVaw08i75onV0Y1tQ_IW-iV0WN");
+async function loadGames(){
+  const oneDayAgo = new Date(Date.now() - 24*60*60*1000).toISOString();
+  const {data} = await supabaseClient.from('predictions').select('*').gte('created_at', oneDayAgo).order('created_at',{ascending:true});
+  if(!data || data.length===0){document.getElementById('games').innerHTML="";document.getElementById('noTips').style.display="block";document.getElementById('codeArea').style.display="none";return;}
+  document.getElementById('noTips').style.display="none";document.getElementById('codeArea').style.display="block";
+  document.getElementById('bookingCode').innerText=data[0].code;
+  let html=""; data.forEach(g=>{html+=`<div class="card"><div><b>${g.teams}</b><br><small>${g.time} • ${g.league}</small></div><div class="badge">${g.tip}</div></div>`});
+  document.getElementById('games').innerHTML=html;
+  supabaseClient.from('predictions').delete().lt('created_at', oneDayAgo).then(()=>{});
 }
-
-async function load(){
-const {data} = await client.from('predictions').select('*').order('id',{ascending:false}).limit(10);
-if(!data||data.length==0){document.getElementById('games').innerHTML='No tips yet';return;}
-let code = data[0].code;
-let html='';
-data.reverse().forEach(p=>{
-  // If you added time/league in supabase, use it, if not auto-detect
-  let detected = autoDetect(p.teams);
-  let time = p.time || detected.time;
-  let league = p.league || detected.league;
-  html+=`<div class="row"><div class="team-box"><div class="team-name">${p.teams}</div><div class="team-meta">• ${time} • ${league}</div></div><span class="tip">${p.tip}</span></div>`;
-});
-html+=`<div style="margin-top:8px"><p style="text-align:center;color:#777;font-size:10px;margin-top:10px">CODE FOR ALL GAMES</p><div class="code-box">${code}</div><button class="btn" onclick="navigator.clipboard.writeText('${code}');window.open('https://www.sportybet.com/ng?shareCode=${code}','_blank')">Bet Now on SportyBet →</button></div>`;
-html+=`<div class="community-box"><div style="font-size:13px;font-weight:800;margin-bottom:10px">🔥 JOIN COMMUNITY</div><div class="join-btns"><a href="https://whatsapp.com/channel/0029VbDaWqJ2f3EGNIgRsC1r" target="_blank" class="btn-wa">WhatsApp</a><a href="https://t.me/predict_Today_bets" target="_blank" class="btn-tg">Telegram</a></div></div>`;
-document.getElementById('games').innerHTML=html;
-}
-load();
-document.addEventListener('copy', e => e.preventDefault());
-</script>
-</body>
-</html>
+loadGames();
+</script></body></html>
